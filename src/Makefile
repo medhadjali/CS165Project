@@ -6,10 +6,10 @@
 all: client server
 
 # C-compiler settings
-CC = gcc -std=c99 -g -ggdb3
+CC = gcc -std=c99 -g -ggdb
 
 # Default optimization level
-O ?= 3
+#O ?= 3
 
 # Flags and other libraries
 override CFLAGS += -Wall -Wextra -pedantic -pthread -O$(O) -I$(INCLUDES)

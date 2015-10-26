@@ -9,6 +9,8 @@
 // Trims the whitespace
 char* trim(char *str);
 
+
+
 // Prototype for Helper function that executes that actual parsing after
 // parse_command_string has found a matching regex.
 status parse_dsl(char* str, dsl* d, db_operator* op);
@@ -77,7 +79,12 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         (void) db_indicator;
 
         // This gives us <db_name>
-        char* db_name = strtok(NULL, delimiter);
+        char* db_name_tmp = strtok(NULL, delimiter);
+        char* db_name = malloc(strlen(db_name_tmp));
+        strncpy(db_name, db_name_tmp, strlen(db_name_tmp));
+        // Free the str_cpy, we don't need it anymore
+        free(str_cpy);
+
 
         log_info("create_db(%s)\n", db_name);
 
@@ -85,21 +92,26 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         db* db1 = NULL;
         status s = create_db(db_name, &db1);
         if (s.code != OK) {
-            // Something went wrong
-        }
+            // Something went wrong 
+            return s;
+        } 
+
 
         // TODO(USER): You must track your variable in a variable pool now!
         // This means later on when I refer to <db_name>, I should get this
         // same db*.  You can do this in many ways, including associating
         // <db_name> -> db1
 
-        // Free the str_cpy
-        free(str_cpy);
+        // Here we have successfully created the db instance
+        // Let's add it to the db pool
+        add_db_pool(db_name, db1);
 
         // No db_operator required, since no query plan
         (void) op;
         status ret;
-        ret.code = OK;
+        ret.code = INFO;
+        ret.message = "Database created successfully.";
+
         return ret;
     } else if (d->g == CREATE_TABLE) {
         // Create a working copy, +1 for '\0'
@@ -138,19 +150,31 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
 
         // Here, we can create the table using our parsed info!
         // TODO(USER): You MUST get the original db* associated with <db_name>
-        // db* db1 = NULL;
+        
+        db* db1 = (db*)exist_db_pool(db_name);
+        if (db1 == NULL) {
+            log_info("%s Database does not exist\n", db_name);
+            status ret;
+            ret.code = ERROR;
+            ret.message = "[ERROR] Database does not exist !!"; 
+            return ret;
+        }
+
 
         // TODO(USER): Uncomment this section after you're able to grab the db1
-        // table* tbl1 = NULL;
-        // status s = create_table(db1, full_name, count, &tbl1);
-        // if (s.code != OK) {
-        //     // Something went wrong
-        // }
+        table* tbl1 = NULL;
+        status s = create_table(db1, full_name, count, &tbl1);
+        if (s.code != OK) {
+            // Something went wrong
+            return s;
+        }
 
+        // I have a different opinion on this, I prefer to reach the table by finding the db then search the table inside.
         // TODO(USER): You must track your variable in a variable pool now!
         // This means later on when I refer to <full_name>, I should get this
         // same table*.  You can do this in many ways, including associating
         // <full_name> -> tbl1
+
 
         // Free the str_cpy
         free(str_cpy);
@@ -192,7 +216,7 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
 
         // Here, we can create the column using our parsed info!
         // TODO(USER): You MUST get the original table* associated with <tbl_name>
-        // table* table1 = NULL;
+        table* table1 = get_table(tbl_name);
 
         // TODO(USER): Uncomment this section after you're able to grab the tbl1
         // column* col1 = NULL;

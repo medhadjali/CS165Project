@@ -1,0 +1,16 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings":
+    {
+         "sublimegdb_workingdir": "/home/kefta/01-Code/src",
+         // NOTE: You MUST provide --interpreter=mi for the plugin to work
+         "sublimegdb_commandline": "gdb --interpreter=mi ./server"
+    
+    }
+
+}

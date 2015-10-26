@@ -101,7 +101,7 @@ typedef struct column {
 typedef struct table {
     const char* name;
     size_t col_count;
-    column* col;
+    column** col;
     size_t length;
 } table;
 
@@ -115,7 +115,7 @@ typedef struct table {
 typedef struct db {
     const char* name;
     size_t table_count;
-    table* tables;
+    table** tables;
 } db;
 
 /**
@@ -127,12 +127,14 @@ typedef enum StatusCode {
   /* There was an error with the call.
   */
   ERROR,
+  /* No need to proceed, just some info */
+  INFO,
 } StatusCode;
 
 // status declares an error code and associated message
 typedef struct status {
     StatusCode code;
-    char* error_message;
+    char* message;
 } status;
 
 // Defines a comparator flag between two values.
