@@ -53,6 +53,7 @@ status parse_command_string(char* str, dsl** commands, db_operator* op)
     // Nothing was found!
     status s;
     s.code = ERROR;
+    s.message = "[ERROR] Unkown command, check DSL syntax";
     return s;
 }
 
@@ -79,11 +80,7 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         (void) db_indicator;
 
         // This gives us <db_name>
-        char* db_name_tmp = strtok(NULL, delimiter);
-        char* db_name = malloc(strlen(db_name_tmp));
-        strncpy(db_name, db_name_tmp, strlen(db_name_tmp));
-        // Free the str_cpy, we don't need it anymore
-        free(str_cpy);
+        char* db_name = strtok(NULL, delimiter);
 
 
         log_info("create_db(%s)\n", db_name);
@@ -105,6 +102,12 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         // Here we have successfully created the db instance
         // Let's add it to the db pool
         add_db_pool(db_name, db1);
+
+
+
+
+        // Free the str_cpy, we don't need it anymore
+        free(str_cpy);
 
         // No db_operator required, since no query plan
         (void) op;
@@ -138,6 +141,7 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         strncat(full_name, ".", 1);
         strncat(full_name, tbl_name, strlen(tbl_name));
 
+
         // This gives us count
         char* count_str = strtok(NULL, delimiter);
         int count = 0;
@@ -145,6 +149,8 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
             count = atoi(count_str);
         }
         (void) count;
+
+
 
         log_info("create_table(%s, %s, %d)\n", full_name, db_name, count);
 
@@ -181,7 +187,8 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
 
         // No db_operator required, since no query plan
         status ret;
-        ret.code = OK;
+        ret.code = INFO;
+        ret.message = "Table created successfully.";
         return ret;
     } else if (d->g == CREATE_COLUMN) {
         // Create a working copy, +1 for '\0'
@@ -207,6 +214,8 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         strncat(full_name, tbl_name, strlen(tbl_name));
         strncat(full_name, ".", 1);
         strncat(full_name, col_name, strlen(col_name));
+        char* col_full_name = malloc(strlen(full_name));
+        strncpy(col_full_name, full_name, strlen(full_name));
 
         // This gives us the "unsorted"
         char* sorting_str = strtok(NULL, delimiter);
@@ -216,14 +225,21 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
 
         // Here, we can create the column using our parsed info!
         // TODO(USER): You MUST get the original table* associated with <tbl_name>
-        table* table1 = get_table(tbl_name);
-
+        table* tbl1 = get_table(tbl_name);
+        if (tbl1 == NULL) {
+            status ret;
+            ret.code = ERROR;
+            ret.message = "[ERROR] Table does not exist";
+            return ret;
+        }
         // TODO(USER): Uncomment this section after you're able to grab the tbl1
-        // column* col1 = NULL;
-        // status s = create_column(tbl1, full_name, &col1);
-        // if (s.code != OK) {
-        //     // Something went wrong
-        // }
+        column* col1 = NULL;
+        status s = create_column(tbl1, full_name, &col1);
+        if (s.code != OK) {
+            // Something went wrong
+            return s;
+
+        }
 
         // TODO(USER): You must track your variable in a variable pool now!
         // This means later on when I refer to <full_name>, I should get this
@@ -235,7 +251,8 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
 
         // No db_operator required, since no query plan
         status ret;
-        ret.code = OK;
+        ret.code = INFO;
+        ret.message = "Column created successfully";
         return ret;
     }
 

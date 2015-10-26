@@ -55,10 +55,11 @@ db_operator* parse_command(message* recv_message, message* send_message) {
         // Something went wrong
         // free dbo and return NULL
         free(dbo);
-        send_message->payload = parse_status.message;
-        send_message->length = strlen(parse_status.message);
+        if (parse_status.message != NULL) {
+            send_message->payload = parse_status.message;
+            send_message->length = strlen(parse_status.message)+1;
+        }
         return NULL;
-
     }
 
     return dbo;

@@ -4,20 +4,44 @@
 		"selected_items":
 		[
 			[
+				"db",
+				"db_pool"
+			],
+			[
+				"db_",
+				"db_pool_size"
+			],
+			[
+				"ful",
+				"full_name"
+			],
+			[
+				"size",
+				"size_t"
+			],
+			[
+				"tabl",
+				"table_count"
+			],
+			[
+				"exis",
+				"exist_db_pool"
+			],
+			[
+				"str",
+				"strtok"
+			],
+			[
+				"db_name",
+				"db_name_tmp"
+			],
+			[
 				"send",
 				"send_message"
 			],
 			[
 				"ret",
 				"return"
-			],
-			[
-				"db_",
-				"db_pool"
-			],
-			[
-				"db",
-				"db_pool"
 			],
 			[
 				"db_poo",
@@ -28,18 +52,37 @@
 	"buffers":
 	[
 		{
-			"file": "parser.c",
+			"file": "Makefile",
 			"settings":
 			{
-				"buffer_size": 9442,
+				"buffer_size": 1819,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "server.c",
+			"file": "parser.c",
 			"settings":
 			{
-				"buffer_size": 6703,
+				"buffer_size": 8708,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "#include \"db.h\"\n#include <string.h>\n#include \"utils.h\"\n\n\n//db variable pool\ndb** db_pool = NULL;\nsize_t db_pool_size = 0;\n\n// Add a DB mapping in the db pool \nstatus add_db_pool(const char* name, db* dbo) {\n    log_info(\"Adding %s to the list of db pool\", name);\n    if (db_pool == NULL) {\n        // hit when no DB exist\n        db_pool =  malloc(sizeof(db*));\n        db_pool_size = 1;\n    } else {\n        // expand the array\n        db_pool_size += 1;\n        db_pool = realloc(db_pool, db_pool_size*sizeof(db*));\n    }\n\n\n    db_pool[db_pool_size-1] = dbo;\n\n    // Nothing was found!\n    status s;\n    s.code = OK;\n    return s;\n}\n\n\n// Add a DB mapping in the db pool (linked list)\ndb* exist_db_pool(const char* name) {\n    log_info(\"search %s in the list of db pool\", name);\n    if (db_pool == NULL) {\n        return NULL;\n    }\n\n    // search for the last entry\n    for (size_t i = 0; i < db_pool_size; ++i)\n    {\n        if (strcmp(db_pool[i]->name, name) == 0)\n        {\n            return db_pool[i];\n        }\n    }\n    // Nothing was found!\n    return NULL;\n}\n\n\n// TODO(USER): Here we provide an incomplete implementation of the create_db.\n// There will be changes that you will need to include here.\nstatus create_db(const char* db_name, db** db) {\n    \n	// Check if the db_name given is already used in the db pool\n    if (exist_db_pool(db_name)!=NULL) {\n        log_info(\"%s already exists\\n\", db_name);\n        status ret;\n        ret.code = ERROR;\n        ret.message = \"Database already exists\";\n        return ret;\n    }\n\n\n\n    if (*db == NULL) {\n        *db = malloc(sizeof(db));\n    }\n\n\n    char * db_name_cpy = malloc(strlen(db_name));\n    strncpy(db_name_cpy, db_name, strlen(db_name));\n\n    (*db)->name =  db_name_cpy;\n    (*db)->table_count = 0;\n    (*db)->tables = NULL;\n\n    status s;\n    s.code = OK;\n    return s;\n}\n\n// create table \nstatus create_table(db* db, const char* name, size_t num_columns, table** table) {\n\n	if (db->tables == NULL)\n	{\n		// here the db has no tables in it\n		// let's create one\n		db->tables = malloc(sizeof(*table));\n		db->table_count = 1;\n\n	} else {\n\n		// check if the table exists and get the pointer to it\n		for (size_t i = 0; i < db->table_count; ++i)\n		{\n			if (strcmp((db->tables[i])->name, name) == 0) {\n\n				log_info(\"table %s already exists\\n\", name);\n				status ret;\n				ret.code = ERROR;\n				ret.message = \"Table already exists\";\n				return ret;\n			}\n\n		 }\n\n		// we need to resize the tables array\n		db->table_count += 1;\n		db->tables = realloc(db->tables, db->table_count*sizeof(table));\n	}\n\n\n	if (*table == NULL) {\n        *table = malloc(sizeof(table));\n    }\n\n    // fill in table values\n    char * tbl_name_cpy =  malloc(strlen(name));\n    strncpy(tbl_name_cpy, name, strlen(name));\n\n	(*table)->name = tbl_name_cpy;\n    (*table)->col_count = num_columns;\n    (*table)->col = malloc(num_columns*sizeof(column*));\n    //initialize columns\n    for (size_t i = 0; i < num_columns; ++i)\n    {\n    	(*table)->col=NULL;\n    }\n\n    // finally associate this pointer to the end of db tables table of pointer\n	db->tables[db->table_count-1] = (*table);\n\n    status s;\n    s.code = OK;\n    return s;\n\n\n\n}\ntable* get_table(const char* name) {\n\n	if (name == NULL) {\n		return NULL;\n	}\n\n	//take a copy because strtok will modify it\n	char* str_cpy = malloc(strlen(name));\n	strncpy(str_cpy, name, strlen(name));\n\n\n    // this gives us the first part as db name\n     char * db_name = strtok(str_cpy, \".\");\n\n    db* db = exist_db_pool(db_name);\n\n    //free memory\n    free(str_cpy);\n\n    if (db == NULL) {\n    	return NULL;\n    }\n\n    // here we got the DB\n\n    if (db->tables == NULL) {\n    	return NULL;\n    }\n\n    for (size_t i = 0; i < db->table_count; ++i)\n    {\n    	if (strcmp((db->tables[i])->name, name) == 0) {\n    		// got it\n    		return db->tables[i];\n\n    	} \n    }\n\n\n	return NULL;\n}\n\n\nstatus create_column(table *table, const char* name, column** col){\n\n    status s;\n    s.code = OK;\n    return s;\n\n}\n",
+			"file": "db.c",
+			"file_size": 4159,
+			"file_write_time": 130903379948103685,
+			"settings":
+			{
+				"buffer_size": 3968,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "db.h",
+			"settings":
+			{
+				"buffer_size": 448,
 				"line_ending": "Windows"
 			}
 		},
@@ -47,24 +90,82 @@
 			"file": "include/cs165_api.h",
 			"settings":
 			{
-				"buffer_size": 12002,
+				"buffer_size": 12049,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "include/parser.h",
+			"file": "server.c",
 			"settings":
 			{
-				"buffer_size": 498,
+				"buffer_size": 6691,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "Makefile",
+			"contents": "3086-exec-continue\n3087-exec-interrupt --all\n3088-exec-interrupt --all\n3089-exec-interrupt --all\n",
 			"settings":
 			{
-				"buffer_size": 1818,
-				"line_ending": "Windows"
+				"buffer_size": 97,
+				"line_ending": "Unix",
+				"name": "GDB Session",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "GDB Console",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "GDB Variables",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "GDB Callstack",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "GDB Threads",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "GDB Breakpoints",
+				"read_only": true,
+				"scratch": true
 			}
 		}
 	],
@@ -75,17 +176,21 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 392.0,
-		"last_filter": "packe",
+		"height": 96.0,
+		"last_filter": "remov",
 		"selected_items":
 		[
 			[
-				"packe",
-				"Preferences: Package Control Settings – Default"
+				"remov",
+				"Package Control: Remove Package"
 			],
 			[
 				"install",
 				"Package Control: Install Package"
+			],
+			[
+				"packe",
+				"Preferences: Package Control Settings – Default"
 			],
 			[
 				"remove",
@@ -122,12 +227,16 @@
 	],
 	"file_history":
 	[
+		"/build/buildd/glibc-2.21/sysdeps/unix/sysv/linux/x86_64/send.c",
+		"/home/kefta/01-Code/src/include/cs165_api.h",
+		"/build/buildd/glibc-2.21/sysdeps/unix/sysv/linux/raise.c",
+		"/home/kefta/01-Code/src/Makefile",
+		"/home/kefta/01-Code/src/server.c",
+		"/home/kefta/01-Code/src/parser.c",
 		"/home/kefta/.config/sublime-text-3/Packages/User/Package Control.sublime-settings",
 		"/home/kefta/.config/sublime-text-3/Packages/Package Control/Package Control.sublime-settings",
-		"/home/kefta/01-Code/src/server.c",
 		"/home/kefta/01-Code/src/db.h",
 		"/home/kefta/01-Code/src/db.c",
-		"/home/kefta/01-Code/src/parser.c",
 		"/home/kefta/.config/sublime-text-3/Packages/SublimeGDB/SublimeGDB.sublime-settings",
 		"/build/buildd/glibc-2.21/malloc/malloc.c",
 		"/build/buildd/glibc-2.21/sysdeps/unix/sysv/linux/x86_64/recv.c",
@@ -136,7 +245,7 @@
 	],
 	"find":
 	{
-		"height": 35.0
+		"height": 24.0
 	},
 	"find_in_files":
 	{
@@ -151,6 +260,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"db",
+			"error_message",
 			"message ",
 			"QUERY",
 			"db_opera",
@@ -162,6 +273,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"message"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -172,24 +284,52 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 2,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "parser.c",
+					"file": "Makefile",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9442,
+						"buffer_size": 1819,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								384,
-								384
+								288,
+								288
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Makefile/Makefile.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "parser.c",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8708,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2510,
+								2510
 							]
 						],
 						"settings":
@@ -199,27 +339,113 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 91.0,
+						"translation.y": 1079.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "db.c",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3968,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								525,
+								525
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 183.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 1,
+					"buffer": 3,
+					"file": "db.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 448,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								415,
+								415
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "include/cs165_api.h",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 12049,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								11294,
+								11294
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": -0.0,
+						"translation.y": 5808.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
 					"file": "server.c",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 6703,
+						"buffer_size": 6691,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4116,
-								4116
+								1990,
+								1990
 							]
 						],
 						"settings":
@@ -229,49 +455,144 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1800.0,
+						"translation.y": 599.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 10,
 					"type": "text"
-				},
+				}
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
 				{
-					"buffer": 2,
-					"file": "include/cs165_api.h",
+					"buffer": 6,
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 12002,
+						"buffer_size": 97,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4440,
-								4440
+								97,
+								97
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/C++/C++.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/SublimeGDB/gdb_session.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 4686.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "include/parser.h",
-					"semi_transient": true,
+					"buffer": 8,
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 498,
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 9,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 10,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
 						"regions":
 						{
 						},
@@ -294,48 +615,33 @@
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "Makefile",
+					"buffer": 11,
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1818,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								370,
-								370
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Makefile/Makefile.tmLanguage"
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"word_wrap": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 1,
 					"type": "text"
 				}
-			]
-		},
-		{
-			"sheets":
-			[
-			]
-		},
-		{
-			"sheets":
-			[
-			]
-		},
-		{
-			"sheets":
-			[
 			]
 		}
 	],
@@ -399,7 +705,7 @@
 	"project": "cs165.sublime-project",
 	"replace":
 	{
-		"height": 44.0
+		"height": 64.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -429,7 +735,7 @@
 		],
 		"width": 0.0
 	},
-	"selected_group": 3,
+	"selected_group": 0,
 	"settings":
 	{
 	},
