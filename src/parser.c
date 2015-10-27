@@ -163,6 +163,8 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
             status ret;
             ret.code = ERROR;
             ret.message = "[ERROR] Database does not exist !!"; 
+            // Free the str_cpy
+            free(str_cpy);
             return ret;
         }
 
@@ -230,6 +232,9 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
             status ret;
             ret.code = ERROR;
             ret.message = "[ERROR] Table does not exist";
+            // Free the str_cpy
+            free(str_cpy);
+
             return ret;
         }
         // TODO(USER): Uncomment this section after you're able to grab the tbl1
@@ -237,6 +242,9 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         status s = create_column(tbl1, full_name, &col1);
         if (s.code != OK) {
             // Something went wrong
+            // Free the str_cpy
+            free(str_cpy);
+
             return s;
 
         }
@@ -246,6 +254,8 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         // same col*.  You can do this in many ways, including associating
         // <full_name> -> col1
 
+        // I disagree to the above, I prefer searching for the column my self
+
         // Free the str_cpy
         free(str_cpy);
 
@@ -253,6 +263,58 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         status ret;
         ret.code = INFO;
         ret.message = "Column created successfully";
+        return ret;
+    } else if (d->g == RELATIONAL_INSERT) {
+        // Create a working copy, +1 for '\0'
+        char* str_cpy = malloc(strlen(str) + 1);
+        strncpy(str_cpy, str, strlen(str) + 1);
+
+        // This gives us everything inside the (<db_name>.<table_name>, int ... )
+        strtok(str_cpy, open_paren);
+        char* args = strtok(NULL, close_paren);
+        // Create a working copy, +1 for '\0'
+        char* args_cpy = malloc(strlen(args));
+        strncpy(args_cpy, args, strlen(args));
+
+        // This gives us <tbl_name>, we will need this to find the table*
+        char* tbl_name = strtok(args, delimiter);
+
+        // find the table*
+        table* tbl1 = get_table(tbl_name);
+        if (tbl1 == NULL) {
+
+            free(str_cpy);
+            status ret;
+
+            ret.code = ERROR;
+            ret.message = "[ERROR] Table does not exist";
+            return ret;
+        }
+
+        int row[tbl1->col_count];
+        strtok(args_cpy, delimiter);
+        // fill a row 
+        for (size_t i = 0; i < tbl1->col_count; ++i)
+        {
+            char * token = strtok(NULL, delimiter);
+            row[i] = (token == NULL)?0:atoi(token);
+        }
+
+        // add it to column
+        status s =  table_add_relational(tbl1, row);
+
+        // Free the str_cpy
+        free(str_cpy);
+        free(args_cpy);
+
+        if (s.code != OK) {
+            // Something went wrong
+            return s;
+        }
+
+        // No db_operator required, since no query plan
+        status ret;
+        ret.code = INFO;
         return ret;
     }
 

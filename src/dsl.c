@@ -13,6 +13,9 @@ const char* create_col_command_sorted = "^create\\(col\\,[\t]*[a-zA-Z0-9_\\.]+\\
 // Matches: create(col, <col_name>, <tbl_var>, unsorted);
 const char* create_col_command_unsorted = "^create\\(col\\,[\t]*[a-zA-Z0-9_\\.]+\\,[\t]*[a-zA-Z0-9_\\.]+\\,[\t]*unsorted)";
 
+// Matches: relational_insert(<db_name>.<table_name>, int ... )
+const char* relational_insert_command = "^relational_insert\\([\t]*[a-zA-Z0-9_]+\\.[a-zA-Z0-9_\\.]+(\\,[\t]*[0-9-]+)+)";
+
 
 // TODO(USER): You will need to update the commands here for every single command you add.
 dsl** dsl_commands_init(void)
@@ -35,6 +38,10 @@ dsl** dsl_commands_init(void)
 
     commands[3]->c = create_col_command_unsorted;
     commands[3]->g = CREATE_COLUMN;
+
+    commands[4]->c = relational_insert_command;
+    commands[4]->g = RELATIONAL_INSERT;
+
 
     return commands;
 }

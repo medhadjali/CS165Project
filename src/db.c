@@ -83,29 +83,24 @@ status create_db(const char* db_name, db** db) {
 }
 
 // create table 
-status create_table(db* db, const char* name, size_t num_columns, table** table) {
+status create_table(db* db, const char* name, size_t num_columns, table** tbl) {
 
 	if (db->tables == NULL)
 	{
 		// here the db has no tables in it
 		// let's create one
-		db->tables = malloc(sizeof(*table));
+		db->tables = malloc(sizeof(table));
 		db->table_count = 1;
 
 	} else {
 
 		// check if the table exists and get the pointer to it
-		for (size_t i = 0; i < db->table_count; ++i)
-		{
-			if (strcmp((db->tables[i])->name, name) == 0) {
-
+		if ( get_table(name) != NULL) {
 				log_info("table %s already exists\n", name);
 				status ret;
 				ret.code = ERROR;
 				ret.message = "Table already exists";
 				return ret;
-			}
-
 		 }
 
 		// we need to resize the tables array
@@ -113,34 +108,32 @@ status create_table(db* db, const char* name, size_t num_columns, table** table)
 		db->tables = realloc(db->tables, db->table_count*sizeof(table));
 	}
 
-
-	if (*table == NULL) {
-        *table = malloc(sizeof(table));
-    }
-
+	(*tbl) = &(db->tables[db->table_count-1]);
     // fill in table values
     char * tbl_name_cpy =  malloc(strlen(name)+1);
+
+
     strncpy(tbl_name_cpy, name, strlen(name)+1);
 
-	(*table)->name = tbl_name_cpy;
-    (*table)->col_count = num_columns;
-    (*table)->col = malloc(num_columns*sizeof(column*));
-    //initialize columns
+	(*tbl)->name = tbl_name_cpy;
+    (*tbl)->col_count = num_columns;
+    (*tbl)->col = malloc(num_columns*sizeof(column));
+    (*tbl)->length = 0;
+
+    // initialize column names to NULL
     for (size_t i = 0; i < num_columns; ++i)
     {
-    	((*table)->col)[i]=NULL;
+    	((*tbl)->col[i]).name = NULL;
     }
 
-    // finally associate this pointer to the end of db tables table of pointer
-	db->tables[db->table_count-1] = (*table);
 
     status s;
     s.code = OK;
     return s;
 
-
-
 }
+
+
 table* get_table(const char* name) {
 
 	if (name == NULL) {
@@ -172,9 +165,9 @@ table* get_table(const char* name) {
 
     for (size_t i = 0; i < db->table_count; ++i)
     {
-    	if (strcmp((db->tables[i])->name, name) == 0) {
+    	if (strcmp((db->tables[i]).name, name) == 0) {
     		// got it
-    		return db->tables[i];
+    		return &(db->tables[i]);
 
     	} 
     }
@@ -186,7 +179,7 @@ table* get_table(const char* name) {
 
 status create_column(table *table, const char* name, column** col){
 
-	// is the column name exists already ?
+	// does the table exists already ?
 	if (table == NULL) {
 		// How come table does not exist ?
 		status s;
@@ -197,12 +190,11 @@ status create_column(table *table, const char* name, column** col){
 
 	while (i < table->col_count)
 	{
-		if (table->col[i] == NULL)
-		{
-			// first unassigned column means we can add to it
+		column* coll = &(table->col[i]);
+		if (coll->name == NULL) {
 			break;
 		}
-		if (strcmp(table->col[i]->name, name) == 0)
+		if (strcmp(coll->name, name) == 0)
 		{
 			status s;
 		    s.code = ERROR;
@@ -219,22 +211,54 @@ status create_column(table *table, const char* name, column** col){
 		return s;
 	}
 
-    if (*col == NULL) {
-        *col = malloc(sizeof(column));
-    }
 
 
     char * col_name_cpy = malloc(strlen(name)+1);
     strncpy(col_name_cpy, name, strlen(name)+1);
 
+	(*col) = &(table->col[i]);
+
     (*col)->name =  col_name_cpy;
     (*col)->data = NULL;
     (*col)->index = NULL;
-
-	table->col[i] = *col;
 
     status s;
     s.code = OK;
     return s;
 
+}
+
+
+status table_add_relational(table* table, int* row) {
+
+	// does the table exists already ?
+	if (table == NULL) {
+		// How come table does not exist ?
+		status s;
+	    s.code = ERROR;
+	    return s;
+	}
+
+
+	// resize
+	table->length += 1; 
+
+	// realloc and insert a new value for each column
+	for (size_t i = 0; i < table->col_count  ; ++i)
+	{
+
+        column* col = &(table->col[i]); // this is the column
+        int* data = col->data;
+		if (data == NULL) {
+			data = malloc(sizeof(int));
+
+		} else {
+			data = realloc(data, table->length*sizeof(int));
+		}
+		data[table->length] = row[i];
+	}
+
+    status s;
+    s.code = OK;
+    return s;
 }

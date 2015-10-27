@@ -29,4 +29,14 @@ db* exist_db_pool(const char* name);
 table* get_table(const char* name);
 
 
+/*
+
+Fill in one row of a table
+
+*/
+status table_add_relational(table* table, int* row);
+
+
+
+
 #endif // DB_H__
