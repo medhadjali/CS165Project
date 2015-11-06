@@ -5,16 +5,26 @@
 const char* create_db_command = "^create\\(db\\,[\\ ]*[a-zA-Z0-9_]+\\)";
 
 // Matches: create(table, <table_name>, <db_name>, <col_count>);
-const char* create_table_command = "^create\\(table\\,[\t]*[a-zA-Z0-9_\\.]+\\,[\t]*[a-zA-Z0-9_\\.]+\\,[\t]*[0-9]+\\)";
+const char* create_table_command = "^create\\(tbl\\,[\t]*[a-zA-Z0-9_\\.]+\\,[\t]*[a-zA-Z0-9_\\.]+\\,[\t]*[0-9]+\\)";
 
 // Matches: create(col, <col_name>, <tbl_var>, sorted);
 const char* create_col_command_sorted = "^create\\(col\\,[\t]*[a-zA-Z0-9_\\.]+\\,[\t]*[a-zA-Z0-9_\\.]+\\,[\t]*sorted)";
+
+// Matches: load(<file_name>);
+const char* load_command = "^load\\([\t]*\"[\t]*[a-zA-Z0-9.-_]+[\t]*\"[\t]*)";
 
 // Matches: create(col, <col_name>, <tbl_var>, unsorted);
 const char* create_col_command_unsorted = "^create\\(col\\,[\t]*[a-zA-Z0-9_\\.]+\\,[\t]*[a-zA-Z0-9_\\.]+\\,[\t]*unsorted)";
 
 // Matches: relational_insert(<db_name>.<table_name>, int ... )
 const char* relational_insert_command = "^relational_insert\\([\t]*[a-zA-Z0-9_]+\\.[a-zA-Z0-9_\\.]+(\\,[\t]*[0-9-]+)+)";
+
+// Matches: select(<col_name>, <min> , <max>)
+const char* select_between_command = "^[a-zA-Z0-9_]+[\\t]*\\=[\\t]*select\\([\t]*[a-zA-Z0-9_]+\\.[a-zA-Z0-9_]+\\.[a-zA-Z0-9_]+\\,[\t]*[0-9-]+\\,[\t]*[0-9-]+)";
+
+// Matches: tuple(<col_name>);
+const char* tuple_command = "^tuple\\([\t]*[a-zA-Z0-9_.]+)";
+
 
 
 // TODO(USER): You will need to update the commands here for every single command you add.
@@ -42,6 +52,15 @@ dsl** dsl_commands_init(void)
     commands[4]->c = relational_insert_command;
     commands[4]->g = RELATIONAL_INSERT;
 
+    commands[5]->c = select_between_command;
+    commands[5]->g = SELECT_BETWEEN;
+
+    commands[6]->c = load_command;
+    commands[6]->g = LOAD_FILE;
+
+
+    commands[7]->c = tuple_command;
+    commands[7]->g = TUPLE_COMMAND;
 
     return commands;
 }

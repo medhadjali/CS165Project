@@ -4,6 +4,30 @@
 		"selected_items":
 		[
 			[
+				"siz",
+				"sizeof"
+			],
+			[
+				"size",
+				"size_t"
+			],
+			[
+				"get_",
+				"get_table"
+			],
+			[
+				"col",
+				"col_name"
+			],
+			[
+				"str",
+				"strtok"
+			],
+			[
+				"si",
+				"size_t"
+			],
+			[
 				"db",
 				"db_pool"
 			],
@@ -16,20 +40,12 @@
 				"full_name"
 			],
 			[
-				"size",
-				"size_t"
-			],
-			[
 				"tabl",
 				"table_count"
 			],
 			[
 				"exis",
 				"exist_db_pool"
-			],
-			[
-				"str",
-				"strtok"
 			],
 			[
 				"db_name",
@@ -52,37 +68,45 @@
 	"buffers":
 	[
 		{
+			"file": "db.c",
+			"settings":
+			{
+				"buffer_size": 8892,
+				"line_ending": "Windows"
+			}
+		},
+		{
 			"file": "Makefile",
 			"settings":
 			{
-				"buffer_size": 1819,
+				"buffer_size": 1818,
 				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "Package Control Messages\n========================\n\nGlue\n----\n\n          __\n   .-----|  .--.--.-----.\n   |  _  |  |  |  |  -__|\n   |___  |__|_____|_____|\n   |_____|\n  \n  Copyright 2014 Christopher Simpkins | MIT License\n  \n  Glue joins your shell to Sublime Text in quasi-perfect harmony.\n  \n  \n  POST-INSTALL TASKS\n  \n  Important! Please take a couple of minutes to read and follow these post-install instructions in order to get up and running without a hitch.\n  \n  \n  Confirm Your PATH Settings\n  --------------------------\n  \n  Please make sure that your PATH settings are correct.  Glue will attempt to use your environment's PATH variable as the default PATH string. In most cases it nails it, but occasionally the PATH string requires a bit of tinkering.\n  \n  Open Glue with the right click menu in a project sidebar or with the Command Palette (type 'glue') and run the command `glue path` in the input panel that is displayed at the bottom of your editor.  The PATH that Glue will use by default is displayed in the editor view.  If this is not the correct PATH string, please follow the instructions below to set your PATH in the Glue settings file.\n  \n  Linux/Unix (including Mac OSX) Users\n  \n  1. Open the `Glue Settings - User` file and add a \"glue_userpath\" key to the JSON file.  Enter your system colon delimited PATH string as the value for this setting. You can view your PATH string by entering 'echo $PATH' in your terminal.  Save the file.\n  2. Restart Sublime Text\n  \n  Windows Users\n  \n  1. Open the `Glue Settings - User` file and add a `glue_userpath` key to the JSON file.  Enter your semicolon delimited system PATH string as the value for this setting. Windows users should escape every backslash character in the PATH (i.e. every '\\' should be changed to '\\\\'). You can view your PATH string by entering 'ECHO %PATH%' in your cmd.exe terminal.  Save the file.\n  2. Restart Sublime Text\n  \n  \n  Choose Your Shell\n  -----------------\n  This is an optional step.  If you would like to change your default shell, here's how you do it:\n  \n  Linux/Unix/Windows\n  \n  1. Open the `Glue Settings - User` file and add a \"glue_shellpath\" key to the JSON file.  Enter the path to your shell executable as the value for this setting.  Windows users should escape every backslash character in the PATH (i.e. every '\\' should be changed to '\\\\').  Save the file.\n  2. Restart Sublime Text\n  \n  \n  Once this is complete, you are all set... Check out the instructions below to learn more about how to use Glue in Sublime Text.\n  \n  See the Install documentation at http://gluedocs.readthedocs.org/en/latest/install.html if you need a more detailed description of the install process.\n  \n  Detailed help documentation is available at http://gluedocs.readthedocs.org\n  \n  \n  USAGE\n  \n    <command> [option(s)]\n  \n    Enter a system command in the input panel at the bottom of your editor using the same syntax that you use in your terminal.  The standard output stream from the executable is printed in the active view of your editor after it returns.\n  \n    To quit Glue, submit the command 'exit'.\n  \n  \n  COMMANDS\n  \n    Glue provides the following additional commands:\n  \n      glue browse <url,path>    Open default browser to <url> or local <path>\n      glue clear                Clear the text in the Glue view\n      glue finder [path]        Reveal current directory (default) or [path] directory in finder\n      glue goto <query>         Sublime Text Goto Anything search for <query>\n      glue help                 Glue help\n      glue localhost [port]     Open browser to localhost:8000 or optional localhost:[port]\n      glue new                  Create a new Sublime Text buffer\n      glue open <path>          Open a file at <path> in the editor. Accepts multiple <path>\n      glue path                 View your PATH settings\n      glue user                 View your Glue extensions (if present)\n      glue wco <pattern>        Open file(s) with wildcard <pattern> in the editor\n  \n  \n  USER COMMANDS\n  \n    Create a `Glue-Commands` directory inside your Sublime Text `Packages` directory.  Create a `glue.json` file inside the `Glue-Commands` directory.  Then map your JSON key:value as \"command-name\": \"system command string\".\n  \n    You have the option to include the following replacement tags in your system command string:\n  \n      {{args}}              additional arguments that you include on the command line\n      {{clipboard}}         the contents of the clipboard\n      {{pwd}}               the current working directory path\n  \n    Launch Glue and run your command extension(s) with the following syntax:\n  \n       glue <command-name> [args]\n  \n    Your command is executed from your current working directory. Please see the documentation for additional details.\n  \n  \n  NAVIGATION\n  \n    The working directory is initially set to the directory containing the buffer in which you are using Glue (when you open from sidebar right click menu or with a project file open in the editor).\n  \n    Change directories with the 'cd' command:\n  \n    cd <directory path>        Make `directory path` the working directory\n    cd ..                      Make parent directory the working directory\n    cd ~                       Make user home directory the working directory\n  \n    Note that your working directory defaults to the system User directory if you launch Glue from the Command Palette without having an open project file in the editor (or in a clean editor window without an open project).\n  \n  \n  ISSUES\n  \n    Please submit bug reports on the GitHub repository @ https://github.com/chrissimpkins/glue/issues\n",
+			"settings":
+			{
+				"buffer_size": 5652,
+				"line_ending": "Unix",
+				"name": "terminal.glue",
+				"read_only": true,
+				"scratch": true
 			}
 		},
 		{
 			"file": "parser.c",
 			"settings":
 			{
-				"buffer_size": 8708,
+				"buffer_size": 15679,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"contents": "#include \"db.h\"\n#include <string.h>\n#include \"utils.h\"\n\n\n//db variable pool\ndb** db_pool = NULL;\nsize_t db_pool_size = 0;\n\n// Add a DB mapping in the db pool \nstatus add_db_pool(const char* name, db* dbo) {\n    log_info(\"Adding %s to the list of db pool\", name);\n    if (db_pool == NULL) {\n        // hit when no DB exist\n        db_pool =  malloc(sizeof(db*));\n        db_pool_size = 1;\n    } else {\n        // expand the array\n        db_pool_size += 1;\n        db_pool = realloc(db_pool, db_pool_size*sizeof(db*));\n    }\n\n\n    db_pool[db_pool_size-1] = dbo;\n\n    // Nothing was found!\n    status s;\n    s.code = OK;\n    return s;\n}\n\n\n// Add a DB mapping in the db pool (linked list)\ndb* exist_db_pool(const char* name) {\n    log_info(\"search %s in the list of db pool\", name);\n    if (db_pool == NULL) {\n        return NULL;\n    }\n\n    // search for the last entry\n    for (size_t i = 0; i < db_pool_size; ++i)\n    {\n        if (strcmp(db_pool[i]->name, name) == 0)\n        {\n            return db_pool[i];\n        }\n    }\n    // Nothing was found!\n    return NULL;\n}\n\n\n// TODO(USER): Here we provide an incomplete implementation of the create_db.\n// There will be changes that you will need to include here.\nstatus create_db(const char* db_name, db** db) {\n    \n	// Check if the db_name given is already used in the db pool\n    if (exist_db_pool(db_name)!=NULL) {\n        log_info(\"%s already exists\\n\", db_name);\n        status ret;\n        ret.code = ERROR;\n        ret.message = \"Database already exists\";\n        return ret;\n    }\n\n\n\n    if (*db == NULL) {\n        *db = malloc(sizeof(db));\n    }\n\n\n    char * db_name_cpy = malloc(strlen(db_name));\n    strncpy(db_name_cpy, db_name, strlen(db_name));\n\n    (*db)->name =  db_name_cpy;\n    (*db)->table_count = 0;\n    (*db)->tables = NULL;\n\n    status s;\n    s.code = OK;\n    return s;\n}\n\n// create table \nstatus create_table(db* db, const char* name, size_t num_columns, table** table) {\n\n	if (db->tables == NULL)\n	{\n		// here the db has no tables in it\n		// let's create one\n		db->tables = malloc(sizeof(*table));\n		db->table_count = 1;\n\n	} else {\n\n		// check if the table exists and get the pointer to it\n		for (size_t i = 0; i < db->table_count; ++i)\n		{\n			if (strcmp((db->tables[i])->name, name) == 0) {\n\n				log_info(\"table %s already exists\\n\", name);\n				status ret;\n				ret.code = ERROR;\n				ret.message = \"Table already exists\";\n				return ret;\n			}\n\n		 }\n\n		// we need to resize the tables array\n		db->table_count += 1;\n		db->tables = realloc(db->tables, db->table_count*sizeof(table));\n	}\n\n\n	if (*table == NULL) {\n        *table = malloc(sizeof(table));\n    }\n\n    // fill in table values\n    char * tbl_name_cpy =  malloc(strlen(name));\n    strncpy(tbl_name_cpy, name, strlen(name));\n\n	(*table)->name = tbl_name_cpy;\n    (*table)->col_count = num_columns;\n    (*table)->col = malloc(num_columns*sizeof(column*));\n    //initialize columns\n    for (size_t i = 0; i < num_columns; ++i)\n    {\n    	(*table)->col=NULL;\n    }\n\n    // finally associate this pointer to the end of db tables table of pointer\n	db->tables[db->table_count-1] = (*table);\n\n    status s;\n    s.code = OK;\n    return s;\n\n\n\n}\ntable* get_table(const char* name) {\n\n	if (name == NULL) {\n		return NULL;\n	}\n\n	//take a copy because strtok will modify it\n	char* str_cpy = malloc(strlen(name));\n	strncpy(str_cpy, name, strlen(name));\n\n\n    // this gives us the first part as db name\n     char * db_name = strtok(str_cpy, \".\");\n\n    db* db = exist_db_pool(db_name);\n\n    //free memory\n    free(str_cpy);\n\n    if (db == NULL) {\n    	return NULL;\n    }\n\n    // here we got the DB\n\n    if (db->tables == NULL) {\n    	return NULL;\n    }\n\n    for (size_t i = 0; i < db->table_count; ++i)\n    {\n    	if (strcmp((db->tables[i])->name, name) == 0) {\n    		// got it\n    		return db->tables[i];\n\n    	} \n    }\n\n\n	return NULL;\n}\n\n\nstatus create_column(table *table, const char* name, column** col){\n\n    status s;\n    s.code = OK;\n    return s;\n\n}\n",
-			"file": "db.c",
-			"file_size": 4159,
-			"file_write_time": 130903379948103685,
+			"file": "utils.c",
 			"settings":
 			{
-				"buffer_size": 3968,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "db.h",
-			"settings":
-			{
-				"buffer_size": 448,
+				"buffer_size": 887,
 				"line_ending": "Windows"
 			}
 		},
@@ -90,7 +114,7 @@
 			"file": "include/cs165_api.h",
 			"settings":
 			{
-				"buffer_size": 12049,
+				"buffer_size": 12047,
 				"line_ending": "Windows"
 			}
 		},
@@ -98,74 +122,32 @@
 			"file": "server.c",
 			"settings":
 			{
-				"buffer_size": 6691,
+				"buffer_size": 6754,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"contents": "3086-exec-continue\n3087-exec-interrupt --all\n3088-exec-interrupt --all\n3089-exec-interrupt --all\n",
+			"file": "db.h",
 			"settings":
 			{
-				"buffer_size": 97,
-				"line_ending": "Unix",
-				"name": "GDB Session",
-				"read_only": true,
-				"scratch": true
+				"buffer_size": 711,
+				"line_ending": "Windows"
 			}
 		},
 		{
-			"contents": "",
+			"file": "include/dsl.h",
 			"settings":
 			{
-				"buffer_size": 0,
-				"line_ending": "Unix",
-				"name": "GDB Console",
-				"read_only": true,
-				"scratch": true
+				"buffer_size": 1717,
+				"line_ending": "Windows"
 			}
 		},
 		{
-			"contents": "",
+			"file": "dsl.c",
 			"settings":
 			{
-				"buffer_size": 0,
-				"line_ending": "Unix",
-				"name": "GDB Variables",
-				"read_only": true,
-				"scratch": true
-			}
-		},
-		{
-			"contents": "",
-			"settings":
-			{
-				"buffer_size": 0,
-				"line_ending": "Unix",
-				"name": "GDB Callstack",
-				"read_only": true,
-				"scratch": true
-			}
-		},
-		{
-			"contents": "",
-			"settings":
-			{
-				"buffer_size": 0,
-				"line_ending": "Unix",
-				"name": "GDB Threads",
-				"read_only": true,
-				"scratch": true
-			}
-		},
-		{
-			"contents": "",
-			"settings":
-			{
-				"buffer_size": 0,
-				"line_ending": "Unix",
-				"name": "GDB Breakpoints",
-				"read_only": true,
-				"scratch": true
+				"buffer_size": 2269,
+				"line_ending": "Windows"
 			}
 		}
 	],
@@ -176,10 +158,18 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 96.0,
-		"last_filter": "remov",
+		"height": 400.0,
+		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"ins",
+				"Package Control: Install Package"
+			],
+			[
+				"glue",
+				"Glue - Launch"
+			],
 			[
 				"remov",
 				"Package Control: Remove Package"
@@ -201,7 +191,7 @@
 				"Package Control: Install Package"
 			]
 		],
-		"width": 467.0
+		"width": 475.0
 	},
 	"console":
 	{
@@ -222,26 +212,32 @@
 	},
 	"expanded_folders":
 	[
-		"/home/kefta/01-Code/src",
-		"/home/kefta/01-Code/src/include"
+		"/home/kefta/01-Code/src"
 	],
 	"file_history":
 	[
+		"/home/kefta/01-Code/src/dsl.c",
 		"/build/buildd/glibc-2.21/sysdeps/unix/sysv/linux/x86_64/send.c",
-		"/home/kefta/01-Code/src/include/cs165_api.h",
-		"/build/buildd/glibc-2.21/sysdeps/unix/sysv/linux/raise.c",
+		"/home/kefta/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
 		"/home/kefta/01-Code/src/Makefile",
+		"/build/buildd/glibc-2.21/malloc/malloc.c",
+		"/build/buildd/glibc-2.21/sysdeps/unix/sysv/linux/raise.c",
+		"/usr/include/stdlib.h",
+		"/build/buildd/glibc-2.21/sysdeps/x86_64/multiarch/strcmp-sse2-unaligned.S",
+		"/build/buildd/glibc-2.21/stdlib/strtol_l.c",
+		"/home/kefta/01-Code/src/db.c",
+		"/build/buildd/glibc-2.21/posix/regexec.c",
+		"/build/buildd/glibc-2.21/posix/regcomp.c",
+		"/build/buildd/glibc-2.21/sysdeps/x86_64/strlen.S",
+		"/home/kefta/01-Code/src/include/cs165_api.h",
 		"/home/kefta/01-Code/src/server.c",
 		"/home/kefta/01-Code/src/parser.c",
 		"/home/kefta/.config/sublime-text-3/Packages/User/Package Control.sublime-settings",
 		"/home/kefta/.config/sublime-text-3/Packages/Package Control/Package Control.sublime-settings",
 		"/home/kefta/01-Code/src/db.h",
-		"/home/kefta/01-Code/src/db.c",
 		"/home/kefta/.config/sublime-text-3/Packages/SublimeGDB/SublimeGDB.sublime-settings",
-		"/build/buildd/glibc-2.21/malloc/malloc.c",
 		"/build/buildd/glibc-2.21/sysdeps/unix/sysv/linux/x86_64/recv.c",
-		"/home/kefta/01-Code/src/cs165.sublime-project",
-		"/home/kefta/.config/sublime-text-3/Packages/User/Preferences.sublime-settings"
+		"/home/kefta/01-Code/src/cs165.sublime-project"
 	],
 	"find":
 	{
@@ -260,6 +256,17 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"extern const char* load_command;\n",
+			"    char* input;\n",
+			"    free(input);\n",
+			"Aggr",
+			"Aggre",
+			"compara",
+			" \n",
+			"strncat",
+			"comparator",
+			"colu",
+			"vpt",
 			"db",
 			"error_message",
 			"message ",
@@ -284,24 +291,55 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 6,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "Makefile",
+					"file": "db.c",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1819,
+						"buffer_size": 8892,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								288,
-								288
+								247,
+								247
+							]
+						],
+						"settings":
+						{
+							"spell_check": false,
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 175.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "Makefile",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1818,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								470,
+								470
 							]
 						],
 						"settings":
@@ -312,24 +350,85 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 11,
+					"stack_index": 9,
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "parser.c",
+					"buffer": 2,
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 8708,
+						"buffer_size": 5652,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2510,
-								2510
+								521,
+								521
+							]
+						],
+						"settings":
+						{
+							"auto_indent": false,
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_width": 2,
+							"word_wrap": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 80.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "parser.c",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15679,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								14210,
+								14210
+							]
+						],
+						"settings":
+						{
+							"spell_check": true,
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1397.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "utils.c",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 887,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
 							]
 						],
 						"settings":
@@ -339,27 +438,87 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1079.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "db.c",
+					"buffer": 5,
+					"file": "include/cs165_api.h",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3968,
+						"buffer_size": 12047,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								525,
-								525
+								5643,
+								5643
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2757.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "server.c",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6754,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4970,
+								4970
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2396.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "db.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 711,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								72,
+								72
 							]
 						],
 						"settings":
@@ -367,27 +526,27 @@
 							"syntax": "Packages/C++/C++.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 183.0,
+						"translation.y": 63.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "db.h",
+					"buffer": 8,
+					"file": "include/dsl.h",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 448,
+						"buffer_size": 1717,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								415,
-								415
+								0,
+								0
 							]
 						],
 						"settings":
@@ -398,24 +557,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 9,
+					"stack_index": 8,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "include/cs165_api.h",
-					"semi_transient": true,
+					"buffer": 9,
+					"file": "dsl.c",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 12049,
+						"buffer_size": 2269,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								11294,
-								11294
+								759,
+								759
 							]
 						],
 						"settings":
@@ -425,223 +584,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": -0.0,
-						"translation.y": 5808.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 8,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "server.c",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 6691,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1990,
-								1990
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 599.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 10,
-					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 1,
-			"sheets":
-			[
-				{
-					"buffer": 6,
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 97,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								97,
-								97
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeGDB/gdb_session.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 7.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 6,
 					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 5,
-					"type": "text"
 				}
 			]
 		},
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 9,
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				}
 			]
 		},
 		{
-			"selected": 1,
 			"sheets":
 			[
-				{
-					"buffer": 10,
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 11,
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"word_wrap": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				}
+			]
+		},
+		{
+			"sheets":
+			[
 			]
 		}
 	],
@@ -651,7 +614,7 @@
 	},
 	"input":
 	{
-		"height": 32.0
+		"height": 36.0
 	},
 	"layout":
 	{
@@ -701,11 +664,15 @@
 	{
 		"height": 0.0
 	},
+	"output.unsaved_changes":
+	{
+		"height": 26.0
+	},
 	"pinned_build_system": "",
 	"project": "cs165.sublime-project",
 	"replace":
 	{
-		"height": 64.0
+		"height": 44.0
 	},
 	"save_all_on_build": true,
 	"select_file":

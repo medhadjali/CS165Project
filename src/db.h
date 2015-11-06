@@ -2,11 +2,15 @@
 #define DB_H__
 
 #include "cs165_api.h"
+#include <stdio.h>
+
+
+#define EOF_FOUND 1
+#define OUT_OF_MEMORY 2
 
 typedef struct db_pool_entry {
 	const char * name;
 	db * obj;
-	struct db_pool_entry * next;
 } db_pool_entry;
 
 /*
@@ -34,8 +38,12 @@ table* get_table(const char* name);
 Fill in one row of a table
 
 */
-status table_add_relational(table* table, int* row);
+status table_add_relational(table* table, int* row, unsigned int size);
 
+int dynamic_fgets(char** buf, int* size, FILE* file);
+
+
+status load_file(char* fname);
 
 
 

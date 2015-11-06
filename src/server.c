@@ -51,6 +51,8 @@ db_operator* parse_command(message* recv_message, message* send_message) {
 
     // Here, we give you a default parser, you are welcome to replace it with anything you want
     status parse_status = parse_command_string(recv_message->payload, dsl_commands, dbo);
+    
+    // Kefta , for commands other than selection return a message only without executing db_operator
     if (parse_status.code != OK) {
         // Something went wrong
         // free dbo and return NULL
