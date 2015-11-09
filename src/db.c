@@ -7,7 +7,7 @@
 db** db_pool = NULL;
 size_t db_pool_size = 0;
 
-// read large lines from a file
+
 
 
 int dynamic_fgets(char** buf, int* size, FILE* file)
@@ -41,29 +41,8 @@ int dynamic_fgets(char** buf, int* size, FILE* file)
 
 
 
-// Kefta : Add a DB mapping in the db pool 
-status add_db_pool(const char* name, db* dbo) {
-    log_info("Adding %s to the list of db pool", name);
-    if (db_pool == NULL) {
-        // hit when no DB exist
-        db_pool =  malloc(sizeof(db*));
-        db_pool_size = 1;
-    } else {
-        // expand the array
-        db_pool_size += 1;
-        db_pool = realloc(db_pool, db_pool_size*sizeof(db*));
-    }
-
-    db_pool[db_pool_size-1] = dbo;
-
-    // Nothing was found!
-    status s;
-    s.code = OK;
-    return s;
-}
-
 // Kefta :  Add a DB mapping in the db pool (linked list)
-db* exist_db_pool(const char* name) {
+db* get_db(const char* name) {
     log_info("search %s in the list of db pool", name);
     if (db_pool == NULL) {
         return NULL;
@@ -81,86 +60,87 @@ db* exist_db_pool(const char* name) {
     return NULL;
 }
 
-
 // TODO(USER): Here we provide an incomplete implementation of the create_db.
 // There will be changes that you will need to include here.
-status create_db(const char* db_name, db** db) {
+status create_db(const char* db_name) {
     
-	// Check if the db_name given is already used in the db pool
-    if (exist_db_pool(db_name)!=NULL) {
+    status ret;
+
+    // Check if the db_name given is already used in the db pool
+    if (get_db(db_name)!=NULL) {
         log_info("%s already exists\n", db_name);
-        status ret;
         ret.code = ERROR;
         ret.message = "Database already exists";
         return ret;
     }
 
-    if (*db == NULL) {
-        *db = malloc(sizeof(db));
-    }
-
     // kefta BUG : str_cpy freed after parser exit
     char * db_name_cpy = malloc(strlen(db_name)+1);
-    strncpy(db_name_cpy, db_name, strlen(db_name)+1);
+    strcpy(db_name_cpy, db_name);
     // 
 
-    (*db)->name =  db_name_cpy;
-    (*db)->table_count = 0;
-    (*db)->tables = NULL;
+    db * dbo = malloc(sizeof(db));
 
-    status s;
-    s.code = OK;
-    return s;
+    dbo->name =  db_name_cpy;
+    dbo->table_count = 0;
+    dbo->tables = NULL;
+
+    // Add to DB pool
+
+    db_pool = realloc(db_pool, ++db_pool_size*sizeof(db*));
+    db_pool[db_pool_size-1] = dbo;
+
+
+    ret.code = OK;
+    return ret;
 }
 
 // create table 
-status create_table(db* db, const char* name, size_t num_columns, table** tbl) {
+status create_table(const char* db_name, const char* name, size_t num_columns) {
 
-	if (db->tables == NULL)
-	{
-		// here the db has no tables in it
-		// let's create one
-		db->tables = malloc(sizeof(table));
-		db->table_count = 1;
 
-	} else {
+    status ret;
 
-		// check if the table exists and get the pointer to it
-		if ( get_table(name) != NULL) {
-				log_info("table %s already exists\n", name);
-				status ret;
-				ret.code = ERROR;
-				ret.message = "Table already exists";
-				return ret;
-		 }
+    // 
+    db* db1 = (db*)get_db(db_name);
+    if (db1 == NULL) {
+        log_info("%s Database does not exist\n", db_name);
+        ret.code = ERROR;
+        ret.message = "[ERROR] Database does not exist !!"; 
+        return ret;
+    }
 
-		// we need to resize the tables array
-		db->table_count += 1;
-		db->tables = realloc(db->tables, db->table_count*sizeof(table));
-	}
+	// check if the table exists and get the pointer to it
+	if ( get_table(name) != NULL) {
+			log_info("table %s already exists\n", name);
+			ret.code = ERROR;
+			ret.message = "Table already exists";
+			return ret;
+	 }
 
-	(*tbl) = &(db->tables[db->table_count-1]);
+	// otherwise we need to allocate the tables array
+	db1->table_count += 1;
+	db1->tables = realloc(db1->tables, db1->table_count*sizeof(table));
+
+	table * tbl = &(db1->tables[db1->table_count-1]);
     // fill in table values
     char * tbl_name_cpy =  malloc(strlen(name)+1);
+    strcpy(tbl_name_cpy, name);
 
-
-    strncpy(tbl_name_cpy, name, strlen(name)+1);
-
-	(*tbl)->name = tbl_name_cpy;
-    (*tbl)->col_count = num_columns;
-    (*tbl)->col = malloc(num_columns*sizeof(column));
-    (*tbl)->length = 0;
+	tbl->name = tbl_name_cpy;
+    tbl->col_count = num_columns;
+    tbl->col = malloc(num_columns*sizeof(column));
+    tbl->length = 0;
 
     // initialize column names to NULL
     for (size_t i = 0; i < num_columns; ++i)
     {
-    	((*tbl)->col[i]).name = NULL;
+    	(tbl->col[i]).name = NULL;
     }
 
 
-    status s;
-    s.code = OK;
-    return s;
+    ret.code = OK;
+    return ret;
 
 }
 
@@ -179,7 +159,7 @@ table* get_table(const char* name) {
     // this gives us the first part as db name
      char * db_name = strtok(str_cpy, ".");
 
-    db* db = exist_db_pool(db_name);
+    db* db = get_db(db_name);
 
     //free memory
     free(str_cpy);
@@ -208,26 +188,32 @@ table* get_table(const char* name) {
 }
 
 
-status create_column(table *table, const char* name, column** col){
+status create_column(const char* tbl_name, const char* name){
 
-	// does the table exists already ?
-	if (table == NULL) {
-		// How come table does not exist ?
-		status s;
-	    s.code = ERROR;
-	    return s;
-	}
+
+    status s;
+    s.message = NULL;
+    s.code = OK;
+
+    // TODO(USER): You MUST get the original table* associated with <tbl_name>
+    table* tbl = get_table(tbl_name);
+    if (tbl == NULL) {
+
+        s.code = ERROR;
+        s.message = "[ERROR] Table does not exist";
+        return s;
+    }
+
 	unsigned int i = 0;
 
-	while (i < table->col_count)
+	while (i < tbl->col_count)
 	{
-		column* coll = &(table->col[i]);
+		column* coll = &(tbl->col[i]);
 		if (coll->name == NULL) {
 			break;
 		}
 		if (strcmp(coll->name, name) == 0)
 		{
-			status s;
 		    s.code = ERROR;
 		    s.message = "[ERROR] Duplicate column name";
 		    return s;
@@ -235,26 +221,21 @@ status create_column(table *table, const char* name, column** col){
 		i++;
 	}
 
-	if (i == table->col_count) {
-		status s;
+	if (i == tbl->col_count) {
 		s.code = ERROR;
 		s.message = "[ERROR] No more columns allowed";
 		return s;
 	}
 
-
-
     char * col_name_cpy = malloc(strlen(name)+1);
     strncpy(col_name_cpy, name, strlen(name)+1);
 
-	(*col) = &(table->col[i]);
+	column * col = &(tbl->col[i]);
 
-    (*col)->name =  col_name_cpy;
-    (*col)->data = NULL;
-    (*col)->index = NULL;
+    col->name =  col_name_cpy;
+    col->data = NULL;
+    col->index = NULL;
 
-    status s;
-    s.code = OK;
     return s;
 
 }
@@ -287,34 +268,48 @@ status table_add_relational(table* table, int* row, unsigned int size) {
 	// reallocate and insert a new value for each column
 	for (size_t i = 0; i < table->col_count  ; ++i)
 	{
-
         column* col = &(table->col[i]); // this is the column
-        // if this is the first time , allocate data
-		if (col->data == NULL) {
-			col->data = malloc(sizeof(int));
-
-		} else { // otherwise resize it 
-			col->data = realloc(col->data, table->length*sizeof(int));
-		}
+        col->data = realloc(col->data, table->length*sizeof(int));
 		(col->data)[table->length-1] = row[i];
 	}
     s.code = OK;
     return s;
 }
 
-column* get_column(table *table, const char* name){
+column* get_column(table **tab, const char* col_name){
+        
+    // find the table from col_name, but first let's store a copy before giving it to strtok
+    char* col_name_cpy =  malloc(strlen(col_name)+1);
+    strncpy(col_name_cpy, col_name, strlen(col_name) + 1);
+    char * db1 = strtok(col_name_cpy, ".");
+    char * tbl1 = strtok(NULL, ".");
+
+    char tbl_name[strlen(db1) + strlen(tbl1) + 2];
+    tbl_name[0] = '\0';
+    strncat(tbl_name, db1, strlen(db1));
+    strncat(tbl_name, ".", 1);
+    strncat(tbl_name, tbl1, strlen(tbl1));
+    
+    table* tbl = get_table(tbl_name);
+    free(col_name_cpy);
+
 
     // does the table exists already ?
-    if (table == NULL) {
+    if (tbl == NULL) {
         // How come table does not exist ?
         return NULL;
     }
+
+    if (tab != NULL) {
+        *tab = tbl;
+    }
+
     unsigned int i = 0;
 
-    while (i < table->col_count)
+    while (i < tbl->col_count)
     {
-        column* coll = &(table->col[i]);
-        if (strcmp(coll->name, name) == 0)
+        column* coll = &(tbl->col[i]);
+        if (strcmp(coll->name, col_name) == 0)
         {
             return coll;
         }
@@ -394,17 +389,20 @@ status load_file(char* fname) {
         rc = dynamic_fgets(&input, &input_size, fstream);
 
         if (rc != 0 ) { break; }
-        int * tuples = malloc(sizeof(int));
+        int * tuples = NULL;
         char * val = strtok(header, ",");
-        if (val == NULL) {continue;}
+        
+        if (val == NULL) {
+            continue;
+        }
+        
         n_tuples++;
         tuples[0] = atoi(val);
         int  n_cols = 0;
         char * tmp = NULL;
         // read line CSV into array 
         while ((tmp = strtok(NULL, ",")) != NULL) {
-            n_cols++;
-            tuples = realloc(tuples, n_cols*sizeof(int));
+            tuples = realloc(tuples, ++n_cols*sizeof(int));
             tuples[n_cols-1] = atoi(tmp);
         }
 
@@ -428,5 +426,161 @@ status load_file(char* fname) {
     return s;
 }
 
+// applies all chained comparators and returns 1 if v matches
+int compare(comparator* c, int v) {
+
+    comparator * cur = c;
+    int result = 0;
+    Junction junc = NONE;
+
+    while (cur ) {
+
+        int subresult = ((cur->type & LESS_THAN)    && (v <  cur->p_val)) 
+                     || ((cur->type & EQUAL)        && (v == cur->p_val)) 
+                     || ((cur->type & GREATER_THAN) && (v >  cur->p_val));
+
+        // now apply the last junction 
+        if      (junc == AND) {  result &= subresult; } 
+        else if (junc == OR)  {  result |= subresult; }
+        else                  {result = subresult;    } // notmally in case we first start 
+            
+        junc = cur->mode;
+        cur = cur->next_comparator;
+    }
+
+    return result;
+
+}
+
+char * tuple_results(result ** rs, int n_res) {
 
 
+    char  buf[1024];
+    // size_t buf_len = 1024;
+    // unsigned int written = 0;
+
+    // for (int i = 0; i < res->num_tuples; ++i){
+    //     // make a CSV out ofevery column value
+    //     int idx = res->payload[i];
+    //     for (int j = 0; j < res->tbl->col_count; ++j){
+
+    //         column * c = &(res->tbl->col[j]);
+
+    //         written += snprintf(buf + written, buf_len - written, (j != 0 ? ", %u" : "%u"), c[idx]);
+    //     }
+    //     written += snprintf(buf + written, 2, "\n");
+    // }
+    return buf;
+
+}
+
+
+
+char * tuple_columns(column ** columns, int n_cols, int length) {
+
+
+    char* buf = malloc(1024*sizeof(char));
+
+    size_t buf_len = 1024;
+    unsigned int written = 0;
+
+    for (int i = 0; i < length; ++i){
+        // make a CSV out ofevery column value
+        for (int j = 0; j < n_cols; ++j){
+
+            written += snprintf(buf + written, buf_len - written, (j != 0 ? ", %u" : "%u"), columns[j]->data[i]);
+        }
+        written += snprintf(buf + written, 2, "\n");
+    }
+    return buf;
+
+}
+
+status query_execute(db_operator* op, result* results){
+
+    status ret;
+    ret.code = OK;
+
+    if (op->type == SELECT ) {
+
+        // bring the column tuple
+        int * tple = ((op->columns)[0])->data;
+        
+        if (tple == NULL) {
+            // should return empty result
+            return ret;
+        }
+
+        // calculate the length of the tuple, just check if it's working otherwise use the second line
+        //int len = sizeof(tple)/sizeof(tple[0]); 
+        int len = ((op->tables)[0])->length;
+
+        int * data = malloc(sizeof(int));
+        int cnt = 0;  // contains the number of matches
+
+        for (int i = 0; i < len; ++i)
+        {
+            // loop and check if the value matches comparator
+            if (compare(op->c, tple[i])) {
+                // resize results array
+                data = realloc(data, ++cnt*sizeof(int));
+                // add i (the column index) to the list 
+                data[cnt] = i;
+            }
+        }
+
+        // store the num_tuples
+        results->num_tuples = cnt;
+        results->payload = data;
+
+    }
+    return ret;
+}
+
+int dbo_factory(db_operator ** dbo) {
+
+    // allocate dbo
+    (*dbo) = (db_operator*) malloc(sizeof(db_operator));
+
+    if ((*dbo) == NULL) {
+        return 0;
+    }
+
+    // initialize its DANGEROUS  variables
+    (*dbo)->tables = NULL;
+    (*dbo)->columns = NULL;
+    (*dbo)->c = NULL;
+    (*dbo)->store_name = NULL;
+
+
+    return 1;
+}
+
+
+
+// should itirate and free sub items
+void free_db_operator(db_operator* dbo ) {
+
+
+    if (dbo == NULL) {
+        return;
+    }
+    // free table dbl pointer array
+    if (dbo->tables != NULL) {
+        free(dbo->tables);
+    }
+    // free column dbl pointer array
+
+    if (dbo->columns != NULL) {
+        free(dbo->tables);
+    }
+
+    // free the comparator linked list
+    comparator * curr = dbo->c;
+
+    while (curr != NULL) {             
+        curr = curr->next_comparator;        
+        free (curr);                           
+    }
+
+} 

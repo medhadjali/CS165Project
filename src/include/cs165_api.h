@@ -127,8 +127,8 @@ typedef enum StatusCode {
   /* There was an error with the call.
   */
   ERROR,
-  /* No need to proceed, just some info */
-  INFO,
+  /* No need to proceed, action already taken like create  */
+  COMPLETE,
 } StatusCode;
 
 // status declares an error code and associated message
@@ -258,6 +258,9 @@ typedef struct db_operator {
     Aggr agg;
     comparator* c;
 
+    // store name where result should be put
+    char * store_name;
+
 } db_operator;
 
 typedef enum OpenFlags {
@@ -307,42 +310,23 @@ status sync_db(db* db);
  * Creates a database with the given database name, and stores the pointer in db
  *
  * db_name  : name of the database, must be unique.
- * db       : pointer to the db pointer. If *db == NULL, then create_db is
- *            responsible for allocating space for the db, else it should assume
- *            that *db points to pre-allocated space.
  * returns  : the status of the operation.
  *
- * Usage:
- *  db *database = NULL;
- *  status s = create_db("db_cs165", &database)
- *  if (s.code != OK) {
- *      // Something went wrong
- *  }
  **/
-status create_db(const char* db_name, db** db);
+status create_db(const char* db_name);
 
 /**
  * create_table(db, name, num_columns, table)
  * Creates a table named @name in @db with @num_columns, and stores the pointer
  * in @table.
  *
- * db          : the database in which to create the table.
+ * db_name     : name of the database.
  * name        : the name of the new table, must be unique in the db.
  * num_columns : the non-negative number of columns in the table.
- * table       : the pointer to the table pointer. If *table == NULL, then
- *               create_table is responsible for allocating space for a table,
- *               else it assume that *table points to pre-allocated space.
  * returns     : the status of the operation.
  *
- * Usage:
- *  // Assume you have a valid db* 'database'
- *  table* tbl = NULL;
- *  status s = create_table(database, "tbl_cs165", 4, &tbl)
- *  if (s.code != OK) {
- *      // Something went wrong
- *  }
  **/
-status create_table(db* db, const char* name, size_t num_columns, table** table);
+status create_table(const char* db_name, const char* name, size_t num_columns);
 
 /**
  * drop_table(db, table)
@@ -361,20 +345,10 @@ status drop_table(db* db, table* table);
  *
  * table   : the table in which to create the column.
  * name    : the name of the column, must be unique in the table.
- * col     : the pointer to the column pointer. If *col == NULL, then
- *           create_column is responsible for allocating space for a column*,
- *           else it should assume that *col points to pre-allocated space.
  * returns : the status of the operation.
  *
- * Usage:
- *  // Assume that you have a valid table* 'tbl';
- *  column* col;
- *  status s = create_column(tbl, 'col_cs165', &col)
- *  if (s.code != OK) {
- *      // Something went wrong
- *  }
  **/
-status create_column(table *table, const char* name, column** col);
+status create_column(const char* tbl_name, const char* name);
 
 /**
  * create_index(col, type)
@@ -395,8 +369,11 @@ status index_scan(comparator *f, column *col, result **r);
 
 /* Query API */
 status query_prepare(const char* query, db_operator** op);
-status query_execute(db_operator* op, result** results);
+status query_execute(db_operator* op, result* results);
 
+// Kefta
+int dbo_factory(db_operator ** dbo);
+void free_db_operator(db_operator* dbo );
 
 #endif /* CS165_H */
 

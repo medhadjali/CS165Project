@@ -13,7 +13,7 @@
 
 // Currently we have 4 DSL commands to parse.
 // TODO(USER): you will need to increase this to track the commands you support.
-#define NUM_DSL_COMMANDS (8)
+#define NUM_DSL_COMMANDS (9)
 
 // This helps group similar DSL commands together.
 // For example, some queries can be parsed together:
@@ -32,7 +32,8 @@ typedef enum DSLGroup {
     LOAD_FILE,
     RELATIONAL_INSERT,
     SELECT_BETWEEN,
-    TUPLE_COMMAND
+    TUPLE_VARIABLE_COMMAND,
+    TUPLE_COLUMN_COMMAND
     // TODO(USER): Add more here...
 } DSLGroup;
 
@@ -55,5 +56,6 @@ extern const char* create_col_command_unsorted;
 extern const char* insert_relational_command;
 extern const char* select_between_command;
 extern const char* load_command;
-extern const char* tuple_command;
+extern const char* tuple_variable_command;
+extern const char* tuple_column_command;
 #endif // DSL_H__

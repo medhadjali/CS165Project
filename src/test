@@ -1,0 +1,3 @@
+create(db,db1)
+create(tbl,tbl1,db1,1)
+create(col,c1,db1.tbl1,unsorted)

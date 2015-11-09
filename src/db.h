@@ -8,21 +8,25 @@
 #define EOF_FOUND 1
 #define OUT_OF_MEMORY 2
 
-typedef struct db_pool_entry {
-	const char * name;
-	db * obj;
-} db_pool_entry;
+
 
 /*
-	This function adds a db to the db pool
+	A structure that holds query results for later use byt fetch and tuple
+
+
 */
-status add_db_pool(const char* name, db* db);
+
+
+typedef struct store {
+    const char* name; // the name of the store variable 
+    result* data;		  // the tuples 
+} store;
 
 
 /*
 	Check if the givem db name already exist in the db pool
 */
-db* exist_db_pool(const char* name);
+db* get_db(const char* name);
 
 
 /*
@@ -31,6 +35,13 @@ db* exist_db_pool(const char* name);
 */
 
 table* get_table(const char* name);
+
+/*
+	returns the column pointer and fills in table
+
+*/
+column* get_column(table **tab, const char* name);
+
 
 
 /*
@@ -45,6 +56,7 @@ int dynamic_fgets(char** buf, int* size, FILE* file);
 
 status load_file(char* fname);
 
-
+// Returns a text represeting the result
+char * tuple_columns(column ** columns, int n_cols, int length);
 
 #endif // DB_H__

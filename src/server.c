@@ -27,6 +27,7 @@
 #include "message.h"
 #include "parser.h"
 #include "utils.h"
+#include "db.h"
 
 #define DEFAULT_QUERY_BUFFER_SIZE 1024
 
@@ -35,7 +36,9 @@
 
 // Here, we allow for a global of DSL COMMANDS to be shared in the program
 dsl** dsl_commands;
-
+// Here we maintain a global pool for storing variables
+store* store_pool = NULL;
+int store_pool_size = 0;
 /**
  * parse_command takes as input the send_message from the client and then
  * parses it into the appropriate query. Stores into send_message the
@@ -44,7 +47,11 @@ dsl** dsl_commands;
  **/
 db_operator* parse_command(message* recv_message, message* send_message) {
     send_message->status = OK_WAIT_FOR_RESPONSE;
-    db_operator *dbo = malloc(sizeof(db_operator));
+    db_operator *dbo;
+    int r = dbo_factory(&dbo);
+    if (r == 0) {
+        return NULL;
+    }
     // Here you parse the message and fill in the proper db_operator fields for
     // now we just log the payload
     cs165_log(stdout, recv_message->payload); 
@@ -54,14 +61,11 @@ db_operator* parse_command(message* recv_message, message* send_message) {
     
     // Kefta , for commands other than selection return a message only without executing db_operator
     if (parse_status.code != OK) {
-        // Something went wrong
-        // free dbo and return NULL
-        free(dbo);
+        free_db_operator(dbo);
+        dbo = NULL;
         if (parse_status.message != NULL) {
             send_message->payload = parse_status.message;
-            send_message->length = strlen(parse_status.message)+1;
         }
-        return NULL;
     }
 
     return dbo;
@@ -73,8 +77,36 @@ db_operator* parse_command(message* recv_message, message* send_message) {
  * a serialization into a string message).
  **/
 char* execute_db_operator(db_operator* query) {
-    free(query);
-    return "165";
+    
+    // Kefta
+
+    result* res = malloc(sizeof(result));
+
+    // For benchmarking
+    // mark the query time start here in microseconds
+
+    status s =  query_execute(query, res);
+    
+
+    // mark the after query end here 
+    // Calculate the time delta
+    if (s.code != OK) {
+        return "Query error";
+    }
+
+    if (query->store_name != NULL) {
+        
+        // here we reequest  store=select(..)
+        // So let' store the result into store pool
+        // first thing is allocate memory
+        store_pool = realloc(store_pool, ++store_pool_size*sizeof(store)); 
+        
+        // then copy params
+        store_pool[store_pool_size-1].name = query->store_name;
+        store_pool[store_pool_size-1].data = res;
+    }
+
+    return "";
 }
 
 /**
@@ -112,21 +144,18 @@ void handle_client(int client_socket) {
             recv_message.payload = recv_buffer;
             recv_message.payload[recv_message.length] = '\0';
 
+            send_message.payload = "\0";
+
             // 1. Parse command
             db_operator* query = parse_command(&recv_message, &send_message);
 
 
-            char* result=NULL;
-
             // 2. Handle request
             if (query != NULL) {
-                result = execute_db_operator(query);
-            } else {
-                result = send_message.payload;
-            }
-            send_message.length = strlen(result);
-
-
+                send_message.payload = execute_db_operator(query);
+                free_db_operator(query);
+            } 
+            
             // 3. Send status of the received message (OK, UNKNOWN_QUERY, etc)
             if (send(client_socket, &(send_message), sizeof(message), 0) == -1) {
                 log_err("Failed to send message.");
@@ -134,7 +163,7 @@ void handle_client(int client_socket) {
             }
 
             // 4. Send response of request
-            if (send(client_socket, result, send_message.length, 0) == -1) {
+            if (send(client_socket, send_message.payload, strlen(send_message.payload)+1, 0) == -1) {
                 log_err("Failed to send message.");
                 exit(1);
             }

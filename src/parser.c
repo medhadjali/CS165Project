@@ -67,7 +67,12 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
     char eq_sign[2] = "=";
     char apos[2] = "\"";
 
-    if (d->g == CREATE_DB) {
+    status ret;
+    ret.message = NULL;
+    ret.code = COMPLETE;
+;
+
+    if        (d->g == CREATE_DB) {
         // Create a working copy, +1 for '\0'      
         char* str_cpy = malloc(strlen(str));
         strncpy(str_cpy, str, strlen(str));
@@ -87,36 +92,13 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         log_info("create_db(%s)\n", db_name);
 
         // Here, we can create the DB using our parsed info!
-        db* db1 = NULL;
-        status s = create_db(db_name, &db1);
+
+        status s = create_db(db_name);
         if (s.code != OK) {
             // Something went wrong 
-            return s;
-        } 
-
-
-        // TODO(USER): You must track your variable in a variable pool now!
-        // This means later on when I refer to <db_name>, I should get this
-        // same db*.  You can do this in many ways, including associating
-        // <db_name> -> db1
-
-        // Kefta : Here we have successfully created the db instance
-        // Let's add it to the db pool
-        add_db_pool(db_name, db1);
-
-
-
-
-        // Free the str_cpy, we don't need it anymore
-        free(str_cpy);
-
-        // No db_operator required, since no query plan
-        (void) op;
-        status ret;
-        ret.code = INFO;
-        ret.message = "Database created successfully.";
-
-        return ret;
+            ret.code = s.code;
+            ret.message = s.message;
+        }
     } else if (d->g == CREATE_TABLE) {
         // Create a working copy, +1 for '\0'
         char* str_cpy = malloc(strlen(str) + 1);
@@ -137,7 +119,8 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         char* db_name = strtok(NULL, delimiter);
 
         // Generate the full name using <db_name>.<tbl_name>
-        char full_name[strlen(tbl_name) + strlen(db_name)];
+        char full_name[strlen(tbl_name) + strlen(db_name)+2];
+        full_name[0] = '\0'; // Fixes random allocation in MacOS
         strncat(full_name, db_name, strlen(db_name));
         strncat(full_name, ".", 1);
         strncat(full_name, tbl_name, strlen(tbl_name));
@@ -156,43 +139,18 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         log_info("create_table(%s, %s, %d)\n", full_name, db_name, count);
 
         // Here, we can create the table using our parsed info!
-        // TODO(USER): You MUST get the original db* associated with <db_name>
-        
-        db* db1 = (db*)exist_db_pool(db_name);
-        if (db1 == NULL) {
-            log_info("%s Database does not exist\n", db_name);
-            status ret;
-            ret.code = ERROR;
-            ret.message = "[ERROR] Database does not exist !!"; 
-            // Free the str_cpy
-            free(str_cpy);
-            return ret;
-        }
 
-
-        // TODO(USER): Uncomment this section after you're able to grab the db1
-        table* tbl1 = NULL;
-        status s = create_table(db1, full_name, count, &tbl1);
+        status s = create_table(db_name, full_name, count);
         if (s.code != OK) {
             // Something went wrong
-            return s;
+            ret.code = s.code;
+            ret.message = s.message;
         }
-
-        // I have a different opinion on this, I prefer to reach the table by finding the db then search the table inside.
-        // TODO(USER): You must track your variable in a variable pool now!
-        // This means later on when I refer to <full_name>, I should get this
-        // same table*.  You can do this in many ways, including associating
-        // <full_name> -> tbl1
-
 
         // Free the str_cpy
         free(str_cpy);
 
         // No db_operator required, since no query plan
-        status ret;
-        ret.code = INFO;
-        ret.message = "Table created successfully.";
-        return ret;
     } else if (d->g == CREATE_COLUMN) {
         // Create a working copy, +1 for '\0'
         char* str_cpy = malloc(strlen(str) + 1);
@@ -213,12 +171,15 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         char* tbl_name = strtok(NULL, delimiter);
 
         // Generate the full name using <db_name>.<tbl_name>
-        char full_name[strlen(tbl_name) + strlen(col_name) + 1];
+        char full_name[strlen(tbl_name) + strlen(col_name) + 2];
+        full_name[0] = '\0'; // Fixes random allocation in MacOS
         strncat(full_name, tbl_name, strlen(tbl_name));
         strncat(full_name, ".", 1);
-        strncat(full_name, col_name, strlen(col_name));
-        char* col_full_name = malloc(strlen(full_name));
-        strncpy(col_full_name, full_name, strlen(full_name));
+        strncat(full_name, col_name, strlen(col_name)+1);
+        
+
+        // char* col_full_name = malloc(strlen(full_name));
+        // strncpy(col_full_name, full_name, strlen(full_name));
 
         // This gives us the "unsorted"
         char* sorting_str = strtok(NULL, delimiter);
@@ -227,44 +188,17 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         log_info("create_column(%s, %s, %s)\n", full_name, tbl_name, sorting_str);
 
         // Here, we can create the column using our parsed info!
-        // TODO(USER): You MUST get the original table* associated with <tbl_name>
-        table* tbl1 = get_table(tbl_name);
-        if (tbl1 == NULL) {
-            status ret;
-            ret.code = ERROR;
-            ret.message = "[ERROR] Table does not exist";
-            // Free the str_cpy
-            free(str_cpy);
 
-            return ret;
-        }
-        // TODO(USER): Uncomment this section after you're able to grab the tbl1
-        column* col1 = NULL;
-        status s = create_column(tbl1, full_name, &col1);
+        status s = create_column(tbl_name, full_name);
         if (s.code != OK) {
             // Something went wrong
-            // Free the str_cpy
-            free(str_cpy);
-
-            return s;
+            ret.code = s.code;
+            ret.message = s.message;
 
         }
 
-        // TODO(USER): You must track your variable in a variable pool now!
-        // This means later on when I refer to <full_name>, I should get this
-        // same col*.  You can do this in many ways, including associating
-        // <full_name> -> col1
-
-        // I disagree to the above, I prefer searching for the column my self
-
-        // Free the str_cpy
         free(str_cpy);
 
-        // No db_operator required, since no query plan
-        status ret;
-        ret.code = INFO;
-        ret.message = "Column created successfully";
-        return ret;
     } else if (d->g == RELATIONAL_INSERT) {
         // Create a working copy, +1 for '\0'
         char* str_cpy = malloc(strlen(str) + 1);
@@ -285,7 +219,6 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         if (tbl1 == NULL) {
 
             free(str_cpy);
-            status ret;
 
             ret.code = ERROR;
             ret.message = "[ERROR] Table does not exist";
@@ -304,21 +237,19 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         // add it to column
         status s =  table_add_relational(tbl1, row, tbl1->col_count);
 
+
+        if (s.code != OK) {
+            // Something went wrong
+            ret.code = s.code;
+            ret.message = s.message;
+        }
+
         // Free the str_cpy
         free(str_cpy);
         free(args_cpy);
 
-        if (s.code != OK) {
-            // Something went wrong
-            return s;
-        }
 
         // No db_operator required, since no query plan
-
-        status ret;
-        ret.code = INFO;
-        ret.message = "Value inserted successfully";
-        return ret;
     } else if (d->g == SELECT_BETWEEN) {
         // Create a working copy, +1 for '\0'
         char* str_cpy = malloc(strlen(str) + 1);
@@ -328,7 +259,10 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         strtok(str_cpy, open_paren);
         char* args = strtok(NULL, close_paren);
         strtok(str_cpy, eq_sign);
-        char* target = trim(str_cpy);
+        char * tmp = trim(str_cpy);
+        char* store_name = malloc(strlen(tmp)+1);
+        strncpy(store_name, tmp, strlen(tmp) + 1);
+        
         // This gives us <tbl_name>, we will need this to find the table*
         char* col_name = strtok(args, delimiter);
         char* min_str = strtok(NULL, delimiter);
@@ -338,39 +272,19 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         int min = (min_str == NULL)?0:atoi(min_str);
         int max = (max_str == NULL)?0:atoi(max_str);
 
-        // find the table from col_name, but first let's store a copy before giving it to strtok
-        char* col_name_cpy =  malloc(strlen(col_name)+1);
-        strncpy(col_name_cpy, col_name, strlen(col_name) + 1);
-        char * db1 = strtok(col_name_cpy, ".");
-        char * tbl1 = strtok(NULL, ".");
-
-        char tbl_name[strlen(db1) + strlen(tbl1) + 2];
-        strncat(tbl_name, db1, strlen(db1));
-        strncat(tbl_name, ".", 1);
-        strncat(tbl_name, tbl1, strlen(tbl1));
         
-        table* tbl = get_table(tbl_name);
-        free(col_name_cpy);
-
-        if (tbl == NULL) {
-
-            free(str_cpy);
-            status ret;
-            ret.code = ERROR;
-            ret.message = "[ERROR] Table does not exist";
-            return ret;
-        }
+        table* tbl = NULL;
 
         // search the column inside the table
-        column* col = get_column(tbl, col_name);
+        column* col = get_column(&tbl, col_name);
 
         if (col == NULL){
 
             free(str_cpy);
-            status ret;
-            ret.code = ERROR;
-            ret.message = "[ERROR] Column does not exist";
-            return ret;
+            status s;
+            s.code = ERROR;
+            s.message = "[ERROR] Column does not exist";
+            return s;
         }
 
         // Free the str_cpy
@@ -381,8 +295,10 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         // TODO : go back when queries become more complex and make this handle more tables and columns at the same time
         
         op->type = SELECT;
-        op->tables = &tbl;
-        op->columns = &col;
+        op->tables = malloc(1*sizeof(table*));
+        (op->tables)[0] = tbl;
+        op->columns = malloc(1*sizeof(column*));
+        (op->columns)[0] = col;
         
         comparator* c_min = malloc(sizeof(comparator));
 
@@ -396,14 +312,14 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         c_max->p_val = max;
         c_max->type = LESS_THAN | EQUAL;
         c_max->col = col;
+        c_max->next_comparator = NULL;
 
         c_min->next_comparator = c_max;
 
         op->c = c_min;
+        op->store_name = store_name;
 
-        status ret;
         ret.code = OK;
-        return ret;
     } else if (d->g == LOAD_FILE) {
         // Create a working copy, +1 for '\0'
         char* str_cpy = malloc(strlen(str) + 1);
@@ -413,17 +329,65 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         strtok(str_cpy, apos);
         char* fname = trim(strtok(NULL, apos));
 
-        status r = load_file(fname);
-        if (r.code != OK) {
-
-            return r;
+        status s = load_file(fname);
+        if (s.code != OK) {
+            ret.code = s.code;
+            ret.message = s.message;
         }
+    } else if (d->g == TUPLE_COLUMN_COMMAND) {
+        // Create a working copy, +1 for '\0'
+        char* str_cpy = malloc(strlen(str) + 1);
+        strncpy(str_cpy, str, strlen(str) + 1);
 
+        // This gives us the column names inside () separated by comma
+        strtok(str_cpy, open_paren);
+        char* args = strtok(NULL, close_paren);
+        char* scols = trim(strtok(args, open_paren));
 
-        status ret;
-        ret.code = INFO;
-        return ret;
-    } else if (d->g == TUPLE_COMMAND) {
+        int  n_cols = 0;
+        char * tmp = strtok(scols, ",");
+        column ** cols = NULL;
+        // read line CSV into array 
+        // maintains the current column length
+        unsigned int clen = 0; 
+
+        do {
+            trim(tmp);
+            // search the column inside the table
+            table* tabl = NULL;
+
+            column* col = get_column(&tabl, tmp);
+            if (col == NULL) {
+                free(str_cpy);
+                free(cols);
+                ret.code = ERROR;
+                ret.message = "Column does not exist";
+                return ret;
+            }
+
+            // fill in the columns length
+            // Unfortunately I cannot calculate the length of data. we do bookkeeping ourselves
+            if (clen==0) {
+                clen = tabl->length;
+            } else {
+                if (clen > tabl->length) {
+                    // keep the minimum safe length ! this should not happen ! but who knows :)
+                    // less information is better than crashing on overflow
+                    clen = tabl->length;
+                }
+            }
+            cols = realloc(cols, ++n_cols*sizeof(column*));
+            cols[n_cols-1] = col;
+        } while ((tmp = strtok(NULL, ",")) != NULL);
+
+        char * out = tuple_columns(cols, n_cols, clen);
+        ret.code = COMPLETE;
+        ret.message = out;
+
+        // Free the str_cpy
+        free(str_cpy);
+
+    } else if (d->g == TUPLE_VARIABLE_COMMAND) {
         // Create a working copy, +1 for '\0'
         char* str_cpy = malloc(strlen(str) + 1);
         strncpy(str_cpy, str, strlen(str) + 1);
@@ -434,62 +398,17 @@ status parse_dsl(char* str, dsl* d, db_operator* op)
         char* col_name = trim(strtok(args, open_paren));
 
 
-        // find the table from col_name, but first let's store a copy before giving it to strtok
-        char* col_name_cpy =  malloc(strlen(col_name)+1);
-        strncpy(col_name_cpy, col_name, strlen(col_name) + 1);
-        char * db1 = strtok(col_name_cpy, ".");
-        char * tbl1 = strtok(NULL, ".");
 
-        char tbl_name[strlen(db1) + strlen(tbl1) + 2];
-        strncat(tbl_name, db1, strlen(db1));
-        strncat(tbl_name, ".", 1);
-        strncat(tbl_name, tbl1, strlen(tbl1));
-        
-        table* tbl = get_table(tbl_name);
-        free(col_name_cpy);
+    } else {
 
-        if (tbl == NULL) {
+        // No match ..
 
-            free(str_cpy);
-            status ret;
-            ret.code = ERROR;
-            ret.message = "[ERROR] Table does not exist";
-            return ret;
-        }
-
-        // search the column inside the table
-        column* col = get_column(tbl, col_name);
-
-        if (col == NULL){
-
-            free(str_cpy);
-            status ret;
-            ret.code = ERROR;
-            ret.message = "[ERROR] Column does not exist";
-            return ret;
-        }
-
-        // Free the str_cpy
-        free(str_cpy);
-
-        // now we have all elements, we can fill in the dbo
-
-        op->type = SELECT;
-        op->tables = &tbl;
-        op->columns = &col;
-        
-        
-
-        op->c = NULL;
-
-        status ret;
-        ret.code = OK;
-        return ret;
+        ret.code = ERROR;
+        ret.message = "Unhandled operation exception";
     }
-    // Should have been caught earlier...
-    status fail;
-    fail.code = ERROR;
-    return fail;
+
+    return ret;
+
 }
 
 // Trims the whitespace
@@ -507,3 +426,6 @@ char* trim(char *str)
     str[current] = 0;
     return str;
 }
+
+
+
