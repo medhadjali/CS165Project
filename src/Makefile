@@ -58,7 +58,7 @@ server: server.o db.o dsl.o parser.o utils.o
 	$(CC) $(CFLAGS) $(DEPCFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 clean:
-	rm -f client server *.o *~ *.bak core *.core cs165_unix_socket
+	rm -f client server *.o *~ *.bak core *.core cs165_unix_socket .schema *.coldata
 	rm -rf .deps
 
 distclean: clean

@@ -36,9 +36,12 @@
 
 // Here, we allow for a global of DSL COMMANDS to be shared in the program
 dsl** dsl_commands;
-// Here we maintain a global pool for storing variables
-store* store_pool = NULL;
-int store_pool_size = 0;
+extern store* store_pool;
+extern int store_pool_size;
+
+int done = 0; // Kefta : for the handle_client loop, I need this to be gloabal for graceful shutdown requested by client.
+
+
 /**
  * parse_command takes as input the send_message from the client and then
  * parses it into the appropriate query. Stores into send_message the
@@ -66,6 +69,10 @@ db_operator* parse_command(message* recv_message, message* send_message) {
         if (parse_status.message != NULL) {
             send_message->payload = parse_status.message;
         }
+        if (parse_status.code == EXIT) {
+            // TODO : DONE find a way to transfer this exit code to the main loop in handle_client
+            done = 1;
+        }
     }
 
     return dbo;
@@ -80,31 +87,11 @@ char* execute_db_operator(db_operator* query) {
     
     // Kefta
 
-    result* res = malloc(sizeof(result));
-
     // For benchmarking
     // mark the query time start here in microseconds
 
-    status s =  query_execute(query, res);
-    
-
-    // mark the after query end here 
-    // Calculate the time delta
-    if (s.code != OK) {
-        return "Query error";
-    }
-
-    if (query->store_name != NULL) {
-        
-        // here we reequest  store=select(..)
-        // So let' store the result into store pool
-        // first thing is allocate memory
-        store_pool = realloc(store_pool, ++store_pool_size*sizeof(store)); 
-        
-        // then copy params
-        store_pool[store_pool_size-1].name = query->store_name;
-        store_pool[store_pool_size-1].data = res;
-    }
+    status s =  query_execute(query);
+    (void)s;
 
     return "";
 }
@@ -115,7 +102,6 @@ char* execute_db_operator(db_operator* query) {
  * It will continually listen for messages from the client and execute queries.
  **/
 void handle_client(int client_socket) {
-    int done = 0;
     int length = 0;
 
     log_info("Connected to socket: %d.\n", client_socket);
@@ -155,7 +141,8 @@ void handle_client(int client_socket) {
                 send_message.payload = execute_db_operator(query);
                 free_db_operator(query);
             } 
-            
+            send_message.length = strlen(send_message.payload);
+
             // 3. Send status of the received message (OK, UNKNOWN_QUERY, etc)
             if (send(client_socket, &(send_message), sizeof(message), 0) == -1) {
                 log_err("Failed to send message.");
@@ -163,10 +150,17 @@ void handle_client(int client_socket) {
             }
 
             // 4. Send response of request
-            if (send(client_socket, send_message.payload, strlen(send_message.payload)+1, 0) == -1) {
+            if (send(client_socket, send_message.payload, strlen(send_message.payload), 0) == -1) {
                 log_err("Failed to send message.");
                 exit(1);
             }
+
+
+
+            // TODO : Find a way to free the payload when it is a query result, not a static error message
+            //
+            //
+            // UTTERLY IMPORTANT
         }
     } while (!done);
 
@@ -233,6 +227,13 @@ int main(void)
     // Populate the global dsl commands
     dsl_commands = dsl_commands_init();
 
+    // load from disk
+    status ret;
+    ret = load_from_disk();
+    (void)ret;
+
+
+
     log_info("Waiting for a connection %d ...\n", server_socket);
 
     struct sockaddr_un remote;
@@ -244,6 +245,8 @@ int main(void)
         exit(1);
     }
 
+
+    // start the ball rolling
     handle_client(client_socket);
 
     return 0;

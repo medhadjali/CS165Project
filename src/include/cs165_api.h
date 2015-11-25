@@ -21,6 +21,7 @@ SOFTWARE.
 #define CS165_H
 
 #include <stdlib.h>
+#include <stdint.h>
 
 /**
  * EXTRA
@@ -81,7 +82,7 @@ typedef struct column_index {
  **/
 typedef struct column {
     const char* name;
-    int* data;
+    int64_t* data;
     column_index *index;
 } column;
 
@@ -129,6 +130,7 @@ typedef enum StatusCode {
   ERROR,
   /* No need to proceed, action already taken like create  */
   COMPLETE,
+  EXIT
 } StatusCode;
 
 // status declares an error code and associated message
@@ -178,7 +180,7 @@ typedef enum Junction {
  **/
 typedef struct comparator {
     int p_val;
-    column *col;
+    //column *col;
     ComparatorType type;
     struct comparator *next_comparator;
     Junction mode;
@@ -186,7 +188,7 @@ typedef struct comparator {
 
 typedef struct result {
     size_t num_tuples;
-    int *payload;
+    int64_t *payload; // Fix bug of large numbers  
 } result;
 
 typedef enum Aggr {
@@ -241,18 +243,22 @@ typedef struct db_operator {
     OperatorType type;
 
     // Used for every operator
-    table** tables;
-    column** columns;
+    table* table;
+    column* column;
 
     // Internmediaties used for PROJECT, DELETE, HASH_JOIN
-    int *pos1;
+    int64_t *pos1;
     // Needed for HASH_JOIN
-    int *pos2;
+    int64_t *pos2;
+
+    // Kefta : Intermediates used on PROJECT and FETCHSELECT
+    result *vec1;
+    result *vec2;
 
     // For insert/delete operations, we only use value1;
     // For update operations, we update value1 -> value2;
-    int *value1;
-    int *value2;
+    int64_t *value1;
+    int64_t *value2;
 
     // This includes several possible fields that may be used in the operation.
     Aggr agg;
@@ -326,7 +332,7 @@ status create_db(const char* db_name);
  * returns     : the status of the operation.
  *
  **/
-status create_table(const char* db_name, const char* name, size_t num_columns);
+status create_table(const char* name, size_t num_columns, table ** rtbl);
 
 /**
  * drop_table(db, table)
@@ -343,12 +349,13 @@ status drop_table(db* db, table* table);
  * create_column(table, name, col)
  * Creates a column named @name in @table, and stores the pointer in @col.
  *
- * table   : the table in which to create the column.
- * name    : the name of the column, must be unique in the table.
+ * is_sorted   : wheteher a sorted column.
+ * col_name    : the name of the column, must be unique in the table.
+ * col         : if you need to return the created column itself
  * returns : the status of the operation.
  *
  **/
-status create_column(const char* tbl_name, const char* name);
+status create_column(const char* col_name, unsigned int is_sorted, column** col);
 
 /**
  * create_index(col, type)
@@ -369,7 +376,7 @@ status index_scan(comparator *f, column *col, result **r);
 
 /* Query API */
 status query_prepare(const char* query, db_operator** op);
-status query_execute(db_operator* op, result* results);
+status query_execute(db_operator* op);
 
 // Kefta
 int dbo_factory(db_operator ** dbo);
